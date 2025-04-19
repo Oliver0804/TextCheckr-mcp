@@ -1,10 +1,11 @@
 from fastmcp import FastMCP
 import json
+import re
 
 mcp = FastMCP("TextCheckr")
 
 def analyze_text(input: str) -> dict:
-    """分析文本的中文字數、英文字數，檢查括號對稱性，驗證 JSON 格式並計算深度，返回詳細報告。"""
+    """分析文本的中文字數、英文字數，檢查括號對稱性，驗證 JSON 格式並計算深度，並分析 markdown 結構，返回詳細報告。"""
     # 初始化計數
     chinese_count = 0
     english_count = 0
@@ -69,6 +70,24 @@ def analyze_text(input: str) -> dict:
     except Exception as e:
         error_msg = str(e)
 
+    # Markdown 分析
+    headings = re.findall(r'^(#{1,6})\s+(.+)$', input, re.MULTILINE)
+    heading_count = len(headings)
+    heading_list = [f"{h[0]} {h[1]}" for h in headings]
+    link_count = len(re.findall(r'\[.*?\]\(.*?\)', input))
+    image_count = len(re.findall(r'!\[.*?\]\(.*?\)', input))
+    code_block_count = len(re.findall(r'```[\s\S]*?```', input))
+    list_count = len(re.findall(r'^\s*[-*+]\s+', input, re.MULTILINE))
+
+    markdown_report = {
+        "headingCount": heading_count,
+        "headings": heading_list,
+        "linkCount": link_count,
+        "imageCount": image_count,
+        "codeBlockCount": code_block_count,
+        "listCount": list_count
+    }
+
     return {
         "chineseCount": chinese_count,
         "englishCount": english_count,
@@ -82,12 +101,13 @@ def analyze_text(input: str) -> dict:
             "isValid": is_valid,
             "depth": depth,
             "error": error_msg
-        }
+        },
+        "markdownReport": markdown_report
     }
 
 @mcp.tool()
 def analyze_text_tool(input: str) -> dict:
-    """Tool: 分析文件的括號對稱、JSON 格式、字數與結構層數"""
+    """Tool: 分析文件的括號對稱、JSON 格式、字數、結構層數與 markdown 結構"""
     return analyze_text(input)
 
 if __name__ == "__main__":
