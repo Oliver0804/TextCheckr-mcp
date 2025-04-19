@@ -14,6 +14,9 @@ def analyze_text(input: str) -> dict:
     pairs = {'(': ')', '[': ']', '{': '}'}
     is_symmetric = True
 
+    # 英文單詞數量
+    word_count = len(re.findall(r'\b[a-zA-Z]+\b', input))
+
     # 一次遍歷完成所有統計和對稱檢查
     for c in input:
         # 中文字符（基本 CJK 區）
@@ -91,6 +94,7 @@ def analyze_text(input: str) -> dict:
     return {
         "chineseCount": chinese_count,
         "englishCount": english_count,
+        "wordCount": word_count,
         "bracketReport": {
             "round": round_count,
             "square": square_count,
